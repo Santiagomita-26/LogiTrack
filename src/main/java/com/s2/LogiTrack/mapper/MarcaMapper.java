@@ -3,6 +3,9 @@ package com.s2.LogiTrack.mapper;
 import com.s2.LogiTrack.model.Marca;
 import com.s2.LogiTrack.dto.request.MarcaDtoRequest;
 import com.s2.LogiTrack.dto.response.MarcaDtoResponse;
+import org.springframework.stereotype.Component;
+
+@Component
 
 public class MarcaMapper {
 
