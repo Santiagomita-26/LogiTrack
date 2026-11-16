@@ -4,6 +4,9 @@ import com.s2.LogiTrack.model.Bodega;
 import com.s2.LogiTrack.model.Ciudad;
 import com.s2.LogiTrack.dto.request.BodegaDtoRequest;
 import com.s2.LogiTrack.dto.response.BodegaDtoResponse;
+import org.springframework.stereotype.Component;
+
+@Component
 
 public class BodegaMapper {
 

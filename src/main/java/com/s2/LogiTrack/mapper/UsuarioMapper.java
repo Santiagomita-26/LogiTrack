@@ -3,7 +3,9 @@ package com.s2.LogiTrack.mapper;
 import com.s2.LogiTrack.model.Usuario;
 import com.s2.LogiTrack.dto.request.UsuarioRegistroDtoRequest;
 import com.s2.LogiTrack.dto.response.UsuarioDtoResponse;
+import org.springframework.stereotype.Component;
 
+@Component
 public class UsuarioMapper {
 
     public UsuarioDtoResponse entityToDto(Usuario usuario) {
