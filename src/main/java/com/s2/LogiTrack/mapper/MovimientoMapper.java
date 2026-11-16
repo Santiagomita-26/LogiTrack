@@ -6,6 +6,9 @@ import com.s2.LogiTrack.model.Producto;
 import com.s2.LogiTrack.model.Bodega;
 import com.s2.LogiTrack.dto.request.MovimientoDtoRequest;
 import com.s2.LogiTrack.dto.response.MovimientoDtoResponse;
+import org.springframework.stereotype.Component;
+
+@Component
 
 public class MovimientoMapper {
 

@@ -2,6 +2,9 @@ package com.s2.LogiTrack.mapper;
 
 import com.s2.LogiTrack.model.Auditoria;
 import com.s2.LogiTrack.dto.response.AuditoriaDtoResponse;
+import org.springframework.stereotype.Component;
+
+@Component
 
 public class AuditoriaMapper {
 

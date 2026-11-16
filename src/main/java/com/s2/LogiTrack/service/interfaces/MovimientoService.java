@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface MovimientoService {
 
-    MovimientoDtoResponse guardar(MovimientoDtoRequest dto);
+    MovimientoDtoResponse guardar(MovimientoDtoRequest dto, Long usuarioId);
     List<MovimientoDtoResponse> listar();
     MovimientoDtoResponse buscarId(Long id);
     List<MovimientoDtoResponse> buscarTipo(Movimiento.TipoMovimiento tipo);
