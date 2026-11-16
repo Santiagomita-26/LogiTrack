@@ -5,7 +5,7 @@ import com.s2.LogiTrack.mapper.AuditoriaMapper;
 import com.s2.LogiTrack.model.Auditoria;
 import com.s2.LogiTrack.repository.AuditoriaRepository;
 import com.s2.LogiTrack.service.interfaces.AuditoriaService;
-
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -25,7 +25,7 @@ public class AuditoriaServiceImpl implements AuditoriaService {
 
     @Override
     public AuditoriaDtoResponse buscarId(Long id) {
-        Auditoria auditoria = auditoriaRepository.findById(id).orElseThrow(() -> new RuntimeException("Error, auditoría no encontrada"));
+        Auditoria auditoria = auditoriaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, auditoría no encontrada"));
         return auditoriaMapper.entityToDto(auditoria);
     }
 

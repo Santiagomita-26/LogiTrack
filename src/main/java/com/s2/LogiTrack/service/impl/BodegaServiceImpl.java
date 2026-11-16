@@ -8,6 +8,7 @@ import com.s2.LogiTrack.model.Ciudad;
 import com.s2.LogiTrack.repository.BodegaRepository;
 import com.s2.LogiTrack.repository.CiudadRepository;
 import com.s2.LogiTrack.service.interfaces.BodegaService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -22,7 +23,7 @@ public class BodegaServiceImpl implements BodegaService {
 
     @Override
     public BodegaDtoResponse guardar(BodegaDtoRequest dto) {
-        Ciudad ciudad = ciudadRepository.findById(dto.ciudadId()).orElseThrow(() -> new RuntimeException("Error, la ciudad no existe"));
+        Ciudad ciudad = ciudadRepository.findById(dto.ciudadId()).orElseThrow(() -> new EntityNotFoundException("Error, la ciudad no existe"));
         Bodega bodega = bodegaMapper.dtoToEntity(dto, ciudad);
         Bodega bodegaRespuesta = bodegaRepository.save(bodega);
         return bodegaMapper.entityToDto(bodegaRespuesta);
@@ -30,8 +31,8 @@ public class BodegaServiceImpl implements BodegaService {
 
     @Override
     public BodegaDtoResponse actualizar(BodegaDtoRequest dto, Long id) {
-        Bodega bodega = bodegaRepository.findById(id).orElseThrow(() -> new RuntimeException("Error, bodega a actualizar no encontrada"));
-        Ciudad ciudad = ciudadRepository.findById(dto.ciudadId()).orElseThrow(() -> new RuntimeException("Error, la ciudad no existe"));
+        Bodega bodega = bodegaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, bodega a actualizar no encontrada"));
+        Ciudad ciudad = ciudadRepository.findById(dto.ciudadId()).orElseThrow(() -> new EntityNotFoundException("Error, la ciudad no existe"));
         bodegaMapper.updateEntityToDto(bodega, dto, ciudad);
         Bodega bodegaActualizada = bodegaRepository.save(bodega);
         return bodegaMapper.entityToDto(bodegaActualizada);
@@ -39,7 +40,7 @@ public class BodegaServiceImpl implements BodegaService {
 
     @Override
     public void eliminar(Long id) {
-        Bodega bodega = bodegaRepository.findById(id).orElseThrow(() -> new RuntimeException("Error, bodega a eliminar no existe"));
+        Bodega bodega = bodegaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, bodega a eliminar no existe"));
         bodegaRepository.delete(bodega);
     }
 
@@ -50,7 +51,7 @@ public class BodegaServiceImpl implements BodegaService {
 
     @Override
     public BodegaDtoResponse buscarId(Long id) {
-        Bodega bodega = bodegaRepository.findById(id).orElseThrow(() -> new RuntimeException("Error, no existe una bodega con ese ID"));
+        Bodega bodega = bodegaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, no existe una bodega con ese ID"));
         return bodegaMapper.entityToDto(bodega);
     }
 
@@ -58,7 +59,7 @@ public class BodegaServiceImpl implements BodegaService {
     public List<BodegaDtoResponse> buscarCiudadId(Long id) {
 
         if (!ciudadRepository.existsById(id)) {
-            throw new RuntimeException("Error, no existe una ciudad con ese ID");
+            throw new EntityNotFoundException("Error, no existe una ciudad con ese ID");
         }
         return bodegaRepository.findByCiudadId(id).stream().map(bodegaMapper::entityToDto).toList();
     }

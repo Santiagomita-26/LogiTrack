@@ -6,7 +6,7 @@ import com.s2.LogiTrack.mapper.CiudadMapper;
 import com.s2.LogiTrack.model.Ciudad;
 import com.s2.LogiTrack.repository.CiudadRepository;
 import com.s2.LogiTrack.service.interfaces.CiudadService;
-
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -30,7 +30,7 @@ public class CiudadServiceImpl implements CiudadService {
     @Override
     public CiudadDtoResponse actualizar(CiudadDtoRequest dto, Long id) {
 
-        Ciudad ciudad = ciudadRepository.findById(id).orElseThrow(() -> new RuntimeException("Error, ciudad a actualizar no encontrada"));
+        Ciudad ciudad = ciudadRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, ciudad a actualizar no encontrada"));
         ciudadMapper.updateEntityToDto(ciudad, dto);
         Ciudad ciudadActualizada = ciudadRepository.save(ciudad);
         return ciudadMapper.entityToDto(ciudadActualizada);
@@ -38,7 +38,7 @@ public class CiudadServiceImpl implements CiudadService {
 
     @Override
     public void eliminar(Long id) {
-        Ciudad ciudad = ciudadRepository.findById(id).orElseThrow(() -> new RuntimeException("Error, ciudad a eliminar no existe"));
+        Ciudad ciudad = ciudadRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, ciudad a eliminar no existe"));
         ciudadRepository.delete(ciudad);
     }
 
@@ -49,7 +49,7 @@ public class CiudadServiceImpl implements CiudadService {
 
     @Override
     public CiudadDtoResponse buscarId(Long id) {
-        Ciudad ciudad = ciudadRepository.findById(id).orElseThrow(() -> new RuntimeException("Error, no existe una ciudad con ese ID"));
+        Ciudad ciudad = ciudadRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, no existe una ciudad con ese ID"));
         return ciudadMapper.entityToDto(ciudad);
     }
 

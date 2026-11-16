@@ -5,7 +5,7 @@ import com.s2.LogiTrack.mapper.InventarioMapper;
 import com.s2.LogiTrack.model.Inventario;
 import com.s2.LogiTrack.repository.InventarioRepository;
 import com.s2.LogiTrack.service.interfaces.InventarioService;
-
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,14 +25,14 @@ public class InventarioServiceImpl implements InventarioService {
 
     @Override
     public InventarioDtoResponse buscarId(Long id) {
-        Inventario inventario = inventarioRepository.findById(id).orElseThrow(() -> new RuntimeException("Error, no existe un inventario con ese ID"));
+        Inventario inventario = inventarioRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, no existe un inventario con ese ID"));
         return inventarioMapper.entityToDto(inventario);
     }
 
     @Override
     public InventarioDtoResponse buscarBodegaProducto(Long bodegaId, Long productoId) {
         Inventario inventario = inventarioRepository.findByBodegaIdAndProductoId(bodegaId, productoId);
-        if (inventario == null) {throw new RuntimeException("Error, no existe inventario para ese producto en esa bodega");
+        if (inventario == null) {throw new EntityNotFoundException("Error, no existe inventario para ese producto en esa bodega");
         }
         return inventarioMapper.entityToDto(inventario);
     }

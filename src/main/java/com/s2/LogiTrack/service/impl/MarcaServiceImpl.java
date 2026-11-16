@@ -2,11 +2,12 @@ package com.s2.LogiTrack.service.impl;
 
 import com.s2.LogiTrack.dto.request.MarcaDtoRequest;
 import com.s2.LogiTrack.dto.response.MarcaDtoResponse;
+import com.s2.LogiTrack.exception.BusinessRuleException;
 import com.s2.LogiTrack.mapper.MarcaMapper;
 import com.s2.LogiTrack.model.Marca;
 import com.s2.LogiTrack.repository.MarcaRepository;
 import com.s2.LogiTrack.service.interfaces.MarcaService;
-
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ public class MarcaServiceImpl implements MarcaService {
     @Override
     public MarcaDtoResponse guardar(MarcaDtoRequest dto) {
 
-        if (marcaRepository.existsByNombre(dto.nombre())) { throw new RuntimeException("Error, la marca ya se encuentra registrada");
+        if (marcaRepository.existsByNombre(dto.nombre())) { throw new BusinessRuleException("Error, la marca ya se encuentra registrada");
         }
         Marca marca = marcaMapper.dtoToEntity(dto);
         Marca marcaRespuesta = marcaRepository.save(marca);
@@ -32,9 +33,9 @@ public class MarcaServiceImpl implements MarcaService {
     @Override
     public MarcaDtoResponse actualizar(MarcaDtoRequest dto, Long id) {
 
-        Marca marca = marcaRepository.findById(id).orElseThrow(() -> new RuntimeException("Error, marca a actualizar no encontrada"));
+        Marca marca = marcaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, marca a actualizar no encontrada"));
         Marca marcaExistente = marcaRepository.findByNombre(dto.nombre());
-        if (marcaExistente != null && !marcaExistente.getId().equals(id)) {throw new RuntimeException("Error, ya existe otra marca con ese nombre");}
+        if (marcaExistente != null && !marcaExistente.getId().equals(id)) {throw new BusinessRuleException("Error, ya existe otra marca con ese nombre");}
         marcaMapper.updateEntityToDto(marca, dto);
         Marca marcaActualizada = marcaRepository.save(marca);
         return marcaMapper.entityToDto(marcaActualizada);
@@ -42,7 +43,7 @@ public class MarcaServiceImpl implements MarcaService {
 
     @Override
     public void eliminar(Long id) {
-        Marca marca = marcaRepository.findById(id).orElseThrow(() -> new RuntimeException("Error, marca a eliminar no existe"));
+        Marca marca = marcaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, marca a eliminar no existe"));
         marcaRepository.delete(marca);
     }
 
@@ -53,7 +54,7 @@ public class MarcaServiceImpl implements MarcaService {
 
     @Override
     public MarcaDtoResponse buscarId(Long id) {
-        Marca marca = marcaRepository.findById(id).orElseThrow(() -> new RuntimeException("Error, no existe una marca con ese ID"));
+        Marca marca = marcaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, no existe una marca con ese ID"));
         return marcaMapper.entityToDto(marca);
     }
 
