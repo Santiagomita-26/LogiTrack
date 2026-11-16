@@ -4,6 +4,9 @@ import com.s2.LogiTrack.model.Producto;
 import com.s2.LogiTrack.model.Marca;
 import com.s2.LogiTrack.dto.request.ProductoDtoRequest;
 import com.s2.LogiTrack.dto.response.ProductoDtoResponse;
+import org.springframework.stereotype.Component;
+
+@Component
 
 public class ProductoMapper {
 
