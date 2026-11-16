@@ -1,9 +1,11 @@
 package com.s2.LogiTrack.mapper;
 
+import com.s2.LogiTrack.dto.request.UsuarioActualizarDtoRequest;
 import com.s2.LogiTrack.model.Usuario;
 import com.s2.LogiTrack.dto.request.UsuarioRegistroDtoRequest;
 import com.s2.LogiTrack.dto.response.UsuarioDtoResponse;
 import org.springframework.stereotype.Component;
+
 
 @Component
 public class UsuarioMapper {
@@ -25,7 +27,7 @@ public class UsuarioMapper {
         return usuario;
     }
 
-    public void updateEntityToDto(Usuario usuario, UsuarioRegistroDtoRequest dto) {
+    public void updateEntityToDto(Usuario usuario, UsuarioActualizarDtoRequest dto) {
         if (dto == null || usuario == null) return;
         usuario.setNombre(dto.nombre());
         usuario.setCorreo(dto.correo());
