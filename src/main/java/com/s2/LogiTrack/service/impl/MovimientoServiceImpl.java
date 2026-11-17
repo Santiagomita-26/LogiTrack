@@ -15,6 +15,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -63,6 +65,7 @@ public class MovimientoServiceImpl implements MovimientoService {
                     inventarioDestino.setStock(0);
                     inventarioDestinoNuevo = true;
                 } else {inventarioDestinoAnterior = objectMapper.valueToTree(inventarioMapper.entityToDto(inventarioDestino));}
+                validarCapacidad(bodegaDestino, dto.cantidad());
                 inventarioDestino.setStock(inventarioDestino.getStock() + dto.cantidad());
                 inventarioRepository.save(inventarioDestino);
             }
@@ -107,6 +110,7 @@ public class MovimientoServiceImpl implements MovimientoService {
                 } else {
                     inventarioDestinoAnterior = objectMapper.valueToTree(inventarioMapper.entityToDto(inventarioDestino));
                 }
+                validarCapacidad(bodegaDestino, dto.cantidad());
                 inventarioOrigen.setStock(inventarioOrigen.getStock() - dto.cantidad());
                 inventarioDestino.setStock(inventarioDestino.getStock() + dto.cantidad());
                 inventarioRepository.save(inventarioOrigen);
@@ -152,6 +156,24 @@ public class MovimientoServiceImpl implements MovimientoService {
         if (inventario == null) {throw new BusinessRuleException("Error, no existe inventario para este producto en la bodega");}
         if (inventario.getStock() < cantidad) {throw new BusinessRuleException("Error, stock insuficiente para realizar el movimiento");}
     }
+
+
+    private void validarCapacidad(Bodega bodega, Integer cantidad) {
+        // Obtener todos los registros de inventario de la bodega.
+        List<Inventario> inventarios = inventarioRepository.findByBodegaId(bodega.getId());
+        // Calcular el inventario total de todos los productos.
+        long inventarioTotal = inventarios.stream().mapToLong(Inventario::getStock).sum();
+        // Calcular cuánto inventario tendría la bodega después del movimiento.
+        BigDecimal inventarioResultante = BigDecimal.valueOf(inventarioTotal).add(BigDecimal.valueOf(cantidad));
+        // Comparar el inventario resultante con la capacidad.
+        if (inventarioResultante.compareTo(bodega.getCapacidad()) > 0) {
+            throw new BusinessRuleException(
+                    "Error, se supera la capacidad de la bodega. " + "Capacidad: " + bodega.getCapacidad() + ", inventario actual: " + inventarioTotal
+                            + ", cantidad a agregar: " + cantidad
+            );
+        }
+    }
+
 
     @Override
     public List<MovimientoDtoResponse> listar() {
