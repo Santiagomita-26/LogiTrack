@@ -7,6 +7,7 @@ import com.s2.LogiTrack.dto.request.UsuarioActualizarDtoRequest;
 import com.s2.LogiTrack.dto.request.UsuarioRegistroDtoRequest;
 import com.s2.LogiTrack.dto.response.UsuarioDtoResponse;
 import com.s2.LogiTrack.exception.BusinessRuleException;
+import com.s2.LogiTrack.exception.DataBaseRuleException;
 import com.s2.LogiTrack.mapper.UsuarioMapper;
 import com.s2.LogiTrack.model.Auditoria;
 import com.s2.LogiTrack.model.Usuario;
@@ -17,6 +18,7 @@ import com.s2.LogiTrack.service.interfaces.UsuarioService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -72,8 +74,17 @@ public class UsuarioServiceImpl implements UsuarioService {
     public void eliminar(Long id) {
         Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
         JsonNode valoresAnteriores = objectMapper.valueToTree(usuarioMapper.entityToDto(usuario));
-        usuarioRepository.delete(usuario);
-        auditoriaService.registrar(Auditoria.TipoOperacion.DELETE, "Usuario", valoresAnteriores, null);
+        try {usuarioRepository.delete(usuario); usuarioRepository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw new DataBaseRuleException("No se puede eliminar el usuario porque tiene registros relacionados en el sistema.");
+        }
+
+        auditoriaService.registrar(
+                Auditoria.TipoOperacion.DELETE,
+                "Usuario",
+                valoresAnteriores,
+                null
+        );
     }
 
     // Lista todos los usuarios.

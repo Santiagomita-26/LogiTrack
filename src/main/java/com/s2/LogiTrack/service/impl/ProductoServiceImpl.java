@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.s2.LogiTrack.dto.request.ProductoDtoRequest;
 import com.s2.LogiTrack.dto.response.ProductoDtoResponse;
 import com.s2.LogiTrack.exception.BusinessRuleException;
+import com.s2.LogiTrack.exception.DataBaseRuleException;
 import com.s2.LogiTrack.mapper.ProductoMapper;
 import com.s2.LogiTrack.model.Auditoria;
 import com.s2.LogiTrack.model.Marca;
@@ -16,6 +17,7 @@ import com.s2.LogiTrack.service.interfaces.ProductoService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -66,7 +68,10 @@ public class ProductoServiceImpl implements ProductoService {
     public void eliminar(Long id) {
         Producto producto = productoRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, producto a eliminar no existe"));
         JsonNode valoresAnteriores = objectMapper.valueToTree(productoMapper.entityToDto(producto));
-        productoRepository.delete(producto);
+        try {productoRepository.delete(producto);productoRepository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw new DataBaseRuleException("No se puede eliminar el producto porque está relacionado con movimientos u otros registros.");
+        }
         auditoriaService.registrar(Auditoria.TipoOperacion.DELETE, "Producto", valoresAnteriores, null);
     }
 

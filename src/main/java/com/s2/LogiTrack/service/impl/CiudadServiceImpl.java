@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.s2.LogiTrack.dto.request.CiudadDtoRequest;
 import com.s2.LogiTrack.dto.response.CiudadDtoResponse;
+import com.s2.LogiTrack.exception.DataBaseRuleException;
 import com.s2.LogiTrack.mapper.CiudadMapper;
 import com.s2.LogiTrack.model.Auditoria;
 import com.s2.LogiTrack.model.Ciudad;
@@ -12,6 +13,7 @@ import com.s2.LogiTrack.service.interfaces.AuditoriaService;
 import com.s2.LogiTrack.service.interfaces.CiudadService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,12 +65,12 @@ public class CiudadServiceImpl implements CiudadService {
     @Override
     @Transactional
     public void eliminar(Long id) {
-
         Ciudad ciudad = ciudadRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, ciudad a eliminar no existe"));
-        // Captura los valores antes de eliminar.
         JsonNode valoresAnteriores = objectMapper.valueToTree(ciudadMapper.entityToDto(ciudad));
-        ciudadRepository.delete(ciudad);
-        // Registra la operación DELETE.
+        try {ciudadRepository.delete(ciudad);ciudadRepository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw new DataBaseRuleException("No se puede eliminar la ciudad porque tiene registros relacionados en otras tablas.");
+        }
         auditoriaService.registrar(Auditoria.TipoOperacion.DELETE, "Ciudad", valoresAnteriores, null);
     }
 

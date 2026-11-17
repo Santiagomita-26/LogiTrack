@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.s2.LogiTrack.dto.request.MarcaDtoRequest;
 import com.s2.LogiTrack.dto.response.MarcaDtoResponse;
 import com.s2.LogiTrack.exception.BusinessRuleException;
+import com.s2.LogiTrack.exception.DataBaseRuleException;
 import com.s2.LogiTrack.mapper.MarcaMapper;
 import com.s2.LogiTrack.model.Auditoria;
 import com.s2.LogiTrack.model.Marca;
@@ -14,6 +15,7 @@ import com.s2.LogiTrack.service.interfaces.MarcaService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -71,12 +73,10 @@ public class MarcaServiceImpl implements MarcaService {
     @Transactional
     public void eliminar(Long id) {
         Marca marca = marcaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, marca a eliminar no existe"));
-        // Captura los valores anteriores.
         JsonNode valoresAnteriores = objectMapper.valueToTree(marcaMapper.entityToDto(marca));
-        marcaRepository.delete(marca);
-        // Registra la operación DELETE.
-        auditoriaService.registrar(Auditoria.TipoOperacion.DELETE, "Marca", valoresAnteriores, null
-        );
+        try {marcaRepository.delete(marca);marcaRepository.flush();
+        } catch (DataIntegrityViolationException ex) {throw new DataBaseRuleException("No se puede eliminar la marca porque tiene productos asociados.");}
+        auditoriaService.registrar(Auditoria.TipoOperacion.DELETE, "Marca", valoresAnteriores, null);
     }
 
     @Override

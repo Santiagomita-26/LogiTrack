@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.s2.LogiTrack.dto.request.BodegaDtoRequest;
 import com.s2.LogiTrack.dto.response.BodegaDtoResponse;
+import com.s2.LogiTrack.exception.DataBaseRuleException;
 import com.s2.LogiTrack.mapper.BodegaMapper;
 import com.s2.LogiTrack.model.Auditoria;
 import com.s2.LogiTrack.model.Bodega;
@@ -15,6 +16,7 @@ import com.s2.LogiTrack.service.interfaces.BodegaService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -59,9 +61,11 @@ public class BodegaServiceImpl implements BodegaService {
     public void eliminar(Long id) {
         Bodega bodega = bodegaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, bodega a eliminar no existe"));
         JsonNode valoresAnteriores = objectMapper.valueToTree(bodegaMapper.entityToDto(bodega));
-        bodegaRepository.delete(bodega);
-        auditoriaService.registrar(Auditoria.TipoOperacion.DELETE, "Bodega", valoresAnteriores, null
-        );
+        try {bodegaRepository.delete(bodega);bodegaRepository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw new DataBaseRuleException("No se puede eliminar la bodega porque tiene registros relacionados en otras tablas.");
+        }
+        auditoriaService.registrar(Auditoria.TipoOperacion.DELETE, "Bodega", valoresAnteriores, null);
     }
 
     @Override

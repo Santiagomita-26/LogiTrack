@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -145,6 +146,26 @@ public class GlobalExceptionHandler {
                         HttpStatus.NOT_FOUND.value(),
                         "Ruta no encontrada o incompleta",
                         "ERR_NO_HANDLER_FOUND"
+                ));
+    }
+
+    // Error al eliminar registros relacionados por llaves foráneas: 409
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @Operation( summary = "Error de integridad referencial",  description = "Se genera cuando se intenta eliminar un registro que tiene información relacionada en otras tablas."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "409", description = "No se puede eliminar porque existen registros relacionados. Código: FOREIGN_KEY_VIOLATION"
+            )
+    })
+    public ResponseEntity<ErrorResponse> handleForeignKeyViolation(
+            DataIntegrityViolationException ex) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(
+                        LocalDateTime.now(),
+                        HttpStatus.CONFLICT.value(),
+                        "No se puede eliminar este registro porque tiene información relacionada en otras tablas.",
+                        "FOREIGN_KEY_VIOLATION"
                 ));
     }
 
