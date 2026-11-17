@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequiredArgsConstructor
@@ -50,4 +51,14 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(usuarioService.guardar(dto));
     }
+
+    @GetMapping("/me")
+    @Operation(summary = "Obtener mi perfil",  description = "Retorna los datos del usuario autenticado usando su token JWT."
+    )
+    public ResponseEntity<UsuarioDtoResponse> me( Authentication authentication) {
+        return ResponseEntity.ok( usuarioService.buscarCorreo(authentication.getName())
+        );
+    }
+
+
 }

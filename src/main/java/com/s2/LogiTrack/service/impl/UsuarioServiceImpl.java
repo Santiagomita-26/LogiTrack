@@ -43,8 +43,10 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setPassword(passwordEncoder.encode(dto.password()));
         Usuario usuarioGuardado = usuarioRepository.save(usuario);
         UsuarioDtoResponse respuesta = usuarioMapper.entityToDto(usuarioGuardado);
-        JsonNode valoresNuevos = objectMapper.valueToTree(respuesta);
-        auditoriaService.registrar(Auditoria.TipoOperacion.INSERT, "Usuario", null, valoresNuevos);
+        // El registro es público: todavía NO existe un usuario autenticado.
+        // AuditoriaService.registrar requiere el ID de un usuario autenticado.
+        // Intentar auditar esta operación hacía fallar y revertir toda la transacción.
+        // La posterior aprobación o rechazo sí queda auditada por un ADMIN.
         return respuesta;
     }
 
