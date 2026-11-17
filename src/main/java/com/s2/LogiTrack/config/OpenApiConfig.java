@@ -1,6 +1,7 @@
 
 package com.s2.LogiTrack.config;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.info.Info;
@@ -35,7 +36,9 @@ public class OpenApiConfig {
     // Proporciona el objeto encargado de convertir objetos Java a JSON.
     @Bean
     public ObjectMapper objectMapper() {
-        return new ObjectMapper().findAndRegisterModules();
+        ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return mapper;
     }
 
 }

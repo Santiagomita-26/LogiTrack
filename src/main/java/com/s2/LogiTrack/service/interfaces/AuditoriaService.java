@@ -2,9 +2,11 @@ package com.s2.LogiTrack.service.interfaces;
 
 import com.s2.LogiTrack.dto.response.AuditoriaDtoResponse;
 import com.s2.LogiTrack.model.Auditoria;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+
+
 
 public interface AuditoriaService {
 
@@ -17,4 +19,6 @@ public interface AuditoriaService {
     List<AuditoriaDtoResponse> buscarUsuarioOperacion(Long usuarioId, Auditoria.TipoOperacion operacion);
     List<AuditoriaDtoResponse> buscarUsuarioFecha(Long usuarioId, LocalDateTime fechaInicio, LocalDateTime fechaFin);
 
+    void registrar(Auditoria.TipoOperacion operacion, String entidad, JsonNode valoresAnteriores, JsonNode valoresNuevos
+    );
 }

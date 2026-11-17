@@ -56,6 +56,9 @@ public class JwtFilter extends OncePerRequestFilter {
                     // Obtiene el rol almacenado en el token.
                     String rol = claims.get("rol", String.class);
 
+                    // Obtiene el ID del usuario almacenado en el token.
+                    Long usuarioId = claims.get("id", Long.class);
+
                     // Crea la autoridad correspondiente al rol del usuario.
                     SimpleGrantedAuthority authority =
                             new SimpleGrantedAuthority("ROLE_" + rol);
@@ -67,6 +70,9 @@ public class JwtFilter extends OncePerRequestFilter {
                                     null,
                                     List.of(authority)
                             );
+
+                    // Almacena el ID del usuario en los detalles de autenticación.
+                    auth.setDetails(usuarioId);
 
                     // Guarda la autenticación en el contexto de seguridad.
                     SecurityContextHolder.getContext().setAuthentication(auth);

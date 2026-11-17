@@ -1,16 +1,21 @@
 
 package com.s2.LogiTrack.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.s2.LogiTrack.dto.request.UsuarioActualizarDtoRequest;
 import com.s2.LogiTrack.dto.request.UsuarioRegistroDtoRequest;
 import com.s2.LogiTrack.dto.response.UsuarioDtoResponse;
 import com.s2.LogiTrack.exception.BusinessRuleException;
 import com.s2.LogiTrack.mapper.UsuarioMapper;
+import com.s2.LogiTrack.model.Auditoria;
 import com.s2.LogiTrack.model.Usuario;
 import com.s2.LogiTrack.repository.UsuarioRepository;
+import com.s2.LogiTrack.service.interfaces.AuditoriaService;
 import com.s2.LogiTrack.service.interfaces.UsuarioService;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,35 +29,49 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
     private final PasswordEncoder passwordEncoder;
+    private final AuditoriaService auditoriaService;
+    private final ObjectMapper objectMapper;
 
     // Registra un usuario nuevo.
     @Override
+    @Transactional
     public UsuarioDtoResponse guardar(UsuarioRegistroDtoRequest dto) {
         if (usuarioRepository.existsByCorreo(dto.correo())) {
             throw new BusinessRuleException("El correo ya se encuentra registrado");
         }
         Usuario usuario = usuarioMapper.dtoToEntity(dto);
-        // Cifra la contraseña antes de guardarla.
         usuario.setPassword(passwordEncoder.encode(dto.password()));
-        usuarioRepository.save(usuario);
-        return usuarioMapper.entityToDto(usuario);
+        Usuario usuarioGuardado = usuarioRepository.save(usuario);
+        UsuarioDtoResponse respuesta = usuarioMapper.entityToDto(usuarioGuardado);
+        JsonNode valoresNuevos = objectMapper.valueToTree(respuesta);
+        auditoriaService.registrar(Auditoria.TipoOperacion.INSERT, "Usuario", null, valoresNuevos);
+        return respuesta;
     }
-    // Actualiza los datos básicos de un usuario.
+
+
     @Override
+    @Transactional
     public UsuarioDtoResponse actualizar(UsuarioActualizarDtoRequest dto, Long id) {
         Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
-        // Comprueba que el correo no pertenezca a otro usuario.
         Usuario usuarioCorreo = usuarioRepository.findByCorreo(dto.correo());
         if (usuarioCorreo != null && !usuarioCorreo.getId().equals(id)) {throw new BusinessRuleException("El correo ya está registrado por otro usuario");}
+        JsonNode valoresAnteriores = objectMapper.valueToTree(usuarioMapper.entityToDto(usuario));
         usuarioMapper.updateEntityToDto(usuario, dto);
-        usuarioRepository.save(usuario);
-        return usuarioMapper.entityToDto(usuario);
+        Usuario usuarioActualizado = usuarioRepository.save(usuario);
+        UsuarioDtoResponse respuesta = usuarioMapper.entityToDto(usuarioActualizado);
+        JsonNode valoresNuevos = objectMapper.valueToTree(respuesta);
+        auditoriaService.registrar(Auditoria.TipoOperacion.UPDATE, "Usuario", valoresAnteriores, valoresNuevos);
+        return respuesta;
     }
 
     // Elimina un usuario por su ID.
     @Override
+    @Transactional
     public void eliminar(Long id) {
-        Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));usuarioRepository.delete(usuario);
+        Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+        JsonNode valoresAnteriores = objectMapper.valueToTree(usuarioMapper.entityToDto(usuario));
+        usuarioRepository.delete(usuario);
+        auditoriaService.registrar(Auditoria.TipoOperacion.DELETE, "Usuario", valoresAnteriores, null);
     }
 
     // Lista todos los usuarios.
@@ -84,26 +103,31 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     // Aprueba una solicitud de registro.
     @Override
+    @Transactional
     public UsuarioDtoResponse aprobar(Long id) {
-
         Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
-        if (usuario.getEstado() != Usuario.Estado.PENDIENTE) {
-            throw new BusinessRuleException("El usuario no tiene una solicitud pendiente");
-        }
+        if (usuario.getEstado() != Usuario.Estado.PENDIENTE) {throw new BusinessRuleException("El usuario no tiene una solicitud pendiente");}
+        JsonNode valoresAnteriores = objectMapper.valueToTree(usuarioMapper.entityToDto(usuario));
         usuario.setEstado(Usuario.Estado.APROBADO);
-        usuarioRepository.save(usuario);
-        return usuarioMapper.entityToDto(usuario);
+        Usuario usuarioActualizado = usuarioRepository.save(usuario);
+        UsuarioDtoResponse respuesta = usuarioMapper.entityToDto(usuarioActualizado);
+        JsonNode valoresNuevos = objectMapper.valueToTree(respuesta);
+        auditoriaService.registrar(Auditoria.TipoOperacion.UPDATE, "Usuario", valoresAnteriores, valoresNuevos);
+        return respuesta;
     }
 
     // Rechaza una solicitud de registro.
     @Override
+    @Transactional
     public UsuarioDtoResponse rechazar(Long id) {
         Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
-        if (usuario.getEstado() != Usuario.Estado.PENDIENTE) {
-            throw new BusinessRuleException("El usuario no tiene una solicitud pendiente");
-        }
+        if (usuario.getEstado() != Usuario.Estado.PENDIENTE) {throw new BusinessRuleException("El usuario no tiene una solicitud pendiente");}
+        JsonNode valoresAnteriores = objectMapper.valueToTree(usuarioMapper.entityToDto(usuario));
         usuario.setEstado(Usuario.Estado.RECHAZADO);
-        usuarioRepository.save(usuario);
-        return usuarioMapper.entityToDto(usuario);
+        Usuario usuarioActualizado = usuarioRepository.save(usuario);
+        UsuarioDtoResponse respuesta = usuarioMapper.entityToDto(usuarioActualizado);
+        JsonNode valoresNuevos = objectMapper.valueToTree(respuesta);
+        auditoriaService.registrar(Auditoria.TipoOperacion.UPDATE, "Usuario", valoresAnteriores, valoresNuevos);
+        return respuesta;
     }
 }

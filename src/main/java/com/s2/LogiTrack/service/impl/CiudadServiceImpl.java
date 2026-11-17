@@ -1,14 +1,20 @@
 package com.s2.LogiTrack.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.s2.LogiTrack.dto.request.CiudadDtoRequest;
 import com.s2.LogiTrack.dto.response.CiudadDtoResponse;
 import com.s2.LogiTrack.mapper.CiudadMapper;
+import com.s2.LogiTrack.model.Auditoria;
 import com.s2.LogiTrack.model.Ciudad;
 import com.s2.LogiTrack.repository.CiudadRepository;
+import com.s2.LogiTrack.service.interfaces.AuditoriaService;
 import com.s2.LogiTrack.service.interfaces.CiudadService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
@@ -18,28 +24,52 @@ public class CiudadServiceImpl implements CiudadService {
 
     private final CiudadMapper ciudadMapper;
     private final CiudadRepository ciudadRepository;
+    private final AuditoriaService auditoriaService;
+    private final ObjectMapper objectMapper;
 
     @Override
+    @Transactional
     public CiudadDtoResponse guardar(CiudadDtoRequest dto) {
 
         Ciudad ciudad = ciudadMapper.dtoToEntity(dto);
         Ciudad ciudadRespuesta = ciudadRepository.save(ciudad);
-        return ciudadMapper.entityToDto(ciudadRespuesta);
+        CiudadDtoResponse respuesta = ciudadMapper.entityToDto(ciudadRespuesta);
+        // Captura los valores nuevos.
+        JsonNode valoresNuevos = objectMapper.valueToTree(respuesta);
+        // Registra la operación INSERT.
+        auditoriaService.registrar(Auditoria.TipoOperacion.INSERT, "Ciudad", null, valoresNuevos);
+        return respuesta;
     }
 
     @Override
+    @Transactional
     public CiudadDtoResponse actualizar(CiudadDtoRequest dto, Long id) {
 
         Ciudad ciudad = ciudadRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, ciudad a actualizar no encontrada"));
+
+        // Captura los valores antes de modificar.
+        JsonNode valoresAnteriores = objectMapper.valueToTree(ciudadMapper.entityToDto(ciudad));
         ciudadMapper.updateEntityToDto(ciudad, dto);
         Ciudad ciudadActualizada = ciudadRepository.save(ciudad);
-        return ciudadMapper.entityToDto(ciudadActualizada);
+        CiudadDtoResponse respuesta = ciudadMapper.entityToDto(ciudadActualizada);
+        // Captura los valores después de modificar.
+        JsonNode valoresNuevos = objectMapper.valueToTree(respuesta);
+        // RegIstra la operación UPDATE.
+        auditoriaService.registrar(Auditoria.TipoOperacion.UPDATE, "Ciudad", valoresAnteriores, valoresNuevos
+        );
+        return respuesta;
     }
 
     @Override
+    @Transactional
     public void eliminar(Long id) {
+
         Ciudad ciudad = ciudadRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Error, ciudad a eliminar no existe"));
+        // Captura los valores antes de eliminar.
+        JsonNode valoresAnteriores = objectMapper.valueToTree(ciudadMapper.entityToDto(ciudad));
         ciudadRepository.delete(ciudad);
+        // Registra la operación DELETE.
+        auditoriaService.registrar(Auditoria.TipoOperacion.DELETE, "Ciudad", valoresAnteriores, null);
     }
 
     @Override

@@ -11,6 +11,7 @@ public interface InventarioRepository extends JpaRepository<Inventario, Long> {
     List<Inventario> findByBodegaId(Long bodegaId);
     List<Inventario> findByProductoId(Long productoId);
     List<Inventario> findByStockLessThan(Integer stock);
+    List<Inventario> findByStockLessThanEqual(Integer stock);
     List<Inventario> findByStockGreaterThan(Integer stock);
 
 }
